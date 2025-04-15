@@ -1,0 +1,1346 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>无人配送管理系统 - 管理者界面</title>
+    <style>
+        :root {
+            --primary-color: #3498db;
+            --secondary-color: #2980b9;
+            --accent-color: #e74c3c;
+            --light-gray: #f5f5f5;
+            --dark-gray: #333;
+            --white: #fff;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: var(--light-gray);
+            color: var(--dark-gray);
+        }
+
+        .container {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* 导航栏样式 */
+        .sidebar {
+            width: 250px;
+            background-color: var(--primary-color);
+            color: var(--white);
+            padding: 20px 0;
+            box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+        }
+
+        .logo {
+            text-align: center;
+            padding: 20px 0;
+            margin-bottom: 30px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .logo h2 {
+            font-size: 1.5rem;
+        }
+
+        .nav-menu {
+            list-style: none;
+        }
+
+        .nav-item {
+            padding: 15px 25px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+        }
+
+        .nav-item:hover {
+            background-color: var(--secondary-color);
+        }
+
+        .nav-item.active {
+            background-color: var(--secondary-color);
+            border-left: 4px solid var(--white);
+        }
+
+        .nav-item i {
+            margin-right: 10px;
+            font-size: 1.2rem;
+        }
+
+        /* 主内容区样式 */
+        .main-content {
+            flex: 1;
+            padding: 30px;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            color: var(--primary-color);
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+        }
+
+        .user-info img {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            margin-right: 10px;
+        }
+
+        /* 卡片样式 */
+        .card {
+            background-color: var(--white);
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid var(--light-gray);
+        }
+
+        .card-title {
+            font-size: 1.2rem;
+            color: var(--primary-color);
+        }
+
+        /* 表格样式 */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid var(--light-gray);
+        }
+
+        th {
+            background-color: var(--light-gray);
+            font-weight: 600;
+        }
+
+        tr:hover {
+            background-color: rgba(52, 152, 219, 0.1);
+        }
+
+        .status {
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .status-pending {
+            background-color: #f39c12;
+            color: white;
+        }
+
+        .status-in-progress {
+            background-color: #3498db;
+            color: white;
+        }
+
+        .status-completed {
+            background-color: #2ecc71;
+            color: white;
+        }
+
+        /* 按钮样式 */
+        .btn {
+            padding: 8px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background-color: var(--secondary-color);
+        }
+
+        .btn-danger {
+            background-color: var(--accent-color);
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background-color: #c0392b;
+        }
+
+        .btn-sm {
+            padding: 5px 10px;
+            font-size: 0.8rem;
+        }
+
+        .btn-info {
+            background-color: #17a2b8;
+            color: white;
+        }
+
+        .btn-info:hover {
+            background-color: #138496;
+        }
+
+        /* 仪表盘统计卡片 */
+        .stats-container {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background-color: var(--white);
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--primary-color);
+            margin: 10px 0;
+        }
+
+        .stat-label {
+            color: var(--dark-gray);
+            font-size: 0.9rem;
+        }
+
+        /* 页面内容区 */
+        .page-content {
+            display: none;
+        }
+
+        .page-content.active {
+            display: block;
+        }
+
+        /* 退出登录页面样式 */
+        .logout-content {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            min-height: 300px;
+        }
+
+        .logout-content p {
+            margin-bottom: 20px;
+            font-size: 1.1rem;
+        }
+
+        /* 订单详情弹窗 */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background-color: white;
+            padding: 30px;
+            border-radius: 8px;
+            width: 80%;
+            max-width: 600px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid var(--light-gray);
+        }
+
+        .modal-title {
+            font-size: 1.3rem;
+            color: var(--primary-color);
+        }
+
+        .close-btn {
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: var(--dark-gray);
+        }
+
+        .order-details {
+            margin-bottom: 20px;
+        }
+
+        .detail-row {
+            display: flex;
+            margin-bottom: 10px;
+        }
+
+        .detail-label {
+            font-weight: 600;
+            width: 120px;
+            color: var(--dark-gray);
+        }
+
+        .detail-value {
+            flex: 1;
+        }
+
+        /* 设置页面样式 */
+        .settings-tabs {
+            display: flex;
+            border-bottom: 1px solid #ddd;
+            margin-bottom: 20px;
+        }
+
+        .settings-tab {
+            padding: 10px 20px;
+            background: none;
+            border: none;
+            border-bottom: 3px solid transparent;
+            cursor: pointer;
+            font-weight: 600;
+            color: var(--dark-gray);
+            transition: all 0.3s;
+        }
+
+        .settings-tab:hover {
+            color: var(--primary-color);
+        }
+
+        .settings-tab.active {
+            color: var(--primary-color);
+            border-bottom-color: var(--primary-color);
+        }
+
+        .settings-panel {
+            display: none;
+            padding: 15px 0;
+        }
+
+        .settings-panel.active {
+            display: block;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+
+        .form-group input[type="text"],
+        .form-group input[type="password"],
+        .form-group input[type="number"],
+        .form-group input[type="email"],
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 1rem;
+        }
+
+        .form-group textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+
+        .form-actions {
+            margin-top: 30px;
+            text-align: right;
+        }
+
+        /* 用户管理样式 */
+        .user-actions {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+
+        .search-box {
+            display: flex;
+            width: 300px;
+        }
+
+        .search-box input {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px 0 0 4px;
+            border-right: none;
+        }
+
+        .search-box button {
+            padding: 10px 15px;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 0 4px 4px 0;
+            cursor: pointer;
+        }
+
+        .role-badge {
+            padding: 3px 8px;
+            border-radius: 10px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .role-admin {
+            background-color: #e74c3c;
+            color: white;
+        }
+
+        .role-manager {
+            background-color: #3498db;
+            color: white;
+        }
+
+        .role-operator {
+            background-color: #2ecc71;
+            color: white;
+        }
+
+        /* 用户编辑弹窗 */
+        .user-modal-content {
+            max-width: 500px;
+        }
+
+        .password-toggle {
+            position: relative;
+        }
+
+        .password-toggle i {
+            position: absolute;
+            right: 10px;
+            top: 10px;
+            cursor: pointer;
+        }
+
+        /* 响应式设计 */
+        @media (max-width: 1200px) {
+            .stats-container {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                flex-direction: column;
+            }
+
+            .sidebar {
+                width: 100%;
+                height: auto;
+            }
+
+            .nav-menu {
+                display: flex;
+                overflow-x: auto;
+            }
+
+            .nav-item {
+                white-space: nowrap;
+            }
+
+            .stats-container {
+                grid-template-columns: 1fr;
+            }
+
+            .modal-content {
+                width: 95%;
+            }
+
+            .settings-tabs {
+                flex-wrap: wrap;
+            }
+
+            .settings-tab {
+                flex: 1;
+                min-width: 120px;
+                text-align: center;
+            }
+
+            .user-actions {
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            .search-box {
+                width: 100%;
+            }
+        }
+    </style>
+    <!-- 引入Font Awesome图标 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+<body>
+    <div class="container">
+        <!-- 导航栏 -->
+        <div class="sidebar">
+            <div class="logo">
+                <h2>无人配送管理系统</h2>
+            </div>
+            <ul class="nav-menu">
+                <li class="nav-item active" data-page="dashboard">
+                    <i class="fas fa-tachometer-alt"></i>
+                    <span>控制面板</span>
+                </li>
+                <li class="nav-item" data-page="pending-orders">
+                    <i class="fas fa-clipboard-list"></i>
+                    <span>待确认订单</span>
+                </li>
+                <li class="nav-item" data-page="drone-assignment">
+                    <i class="fas fa-drone"></i>
+                    <span>分配无人机</span>
+                </li>
+                <li class="nav-item" data-page="logistics-status">
+                    <i class="fas fa-truck"></i>
+                    <span>物流状态</span>
+                </li>
+                <li class="nav-item" data-page="data-analysis">
+                    <i class="fas fa-chart-line"></i>
+                    <span>数据分析</span>
+                </li>
+                <li class="nav-item" data-page="settings">
+                    <i class="fas fa-cog"></i>
+                    <span>系统设置</span>
+                </li>
+                <li class="nav-item" data-page="user-management">
+                    <i class="fas fa-users"></i>
+                    <span>用户管理</span>
+                </li>
+                <li class="nav-item" data-page="logout">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span>退出登录</span>
+                </li>
+            </ul>
+        </div>
+
+        <!-- 主内容区 -->
+        <div class="main-content">
+            <div class="header">
+                <h1 id="page-title">控制面板</h1>
+                <div class="user-info">
+                    <img src="https://via.placeholder.com/40" alt="用户头像">
+                    <span>管理员</span>
+                </div>
+            </div>
+
+            <!-- 控制面板 -->
+            <div id="dashboard" class="page-content active">
+                <!-- 统计卡片 -->
+                <div class="stats-container">
+                    <div class="stat-card">
+                        <i class="fas fa-clipboard-list fa-2x" style="color: #3498db;"></i>
+                        <div class="stat-value">24</div>
+                        <div class="stat-label">待处理订单</div>
+                    </div>
+                    <div class="stat-card">
+                        <i class="fas fa-drone fa-2x" style="color: #2ecc71;"></i>
+                        <div class="stat-value">8</div>
+                        <div class="stat-label">可用无人机</div>
+                    </div>
+                    <div class="stat-card">
+                        <i class="fas fa-truck fa-2x" style="color: #f39c12;"></i>
+                        <div class="stat-value">15</div>
+                        <div class="stat-label">配送中订单</div>
+                    </div>
+                    <div class="stat-card">
+                        <i class="fas fa-check-circle fa-2x" style="color: #e74c3c;"></i>
+                        <div class="stat-value">32</div>
+                        <div class="stat-label">今日完成订单</div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">系统概览</h3>
+                    </div>
+                    <p>欢迎使用无人配送管理系统。当前系统运行正常，所有无人机状态良好。</p>
+                    <p>今日已完成32单配送，15单正在配送中，8架无人机可用待命。</p>
+                </div>
+            </div>
+
+            <!-- 待确认订单 -->
+            <div id="pending-orders" class="page-content">
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">待确认订单</h3>
+                        <button class="btn btn-primary">查看全部</button>
+                    </div>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>订单编号</th>
+                                <th>客户名称</th>
+                                <th>配送地址</th>
+                                <th>下单时间</th>
+                                <th>状态</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>#ORD-2023-001</td>
+                                <td>张三</td>
+                                <td>北京市海淀区中关村大街1号</td>
+                                <td>2023-06-15 10:30</td>
+                                <td><span class="status status-pending">待确认</span></td>
+                                <td>
+                                    <button class="btn btn-info btn-sm">查看详情</button>
+                                    <button class="btn btn-primary btn-sm">确认</button>
+                                    <button class="btn btn-danger btn-sm">拒绝</button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>#ORD-2023-002</td>
+                                <td>李四</td>
+                                <td>北京市朝阳区建国路88号</td>
+                                <td>2023-06-15 11:15</td>
+                                <td><span class="status status-pending">待确认</span></td>
+                                <td>
+                                    <button class="btn btn-info btn-sm">查看详情</button>
+                                    <button class="btn btn-primary btn-sm">确认</button>
+                                    <button class="btn btn-danger btn-sm">拒绝</button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>#ORD-2023-003</td>
+                                <td>王五</td>
+                                <td>北京市西城区金融大街15号</td>
+                                <td>2023-06-15 12:45</td>
+                                <td><span class="status status-pending">待确认</span></td>
+                                <td>
+                                    <button class="btn btn-info btn-sm">查看详情</button>
+                                    <button class="btn btn-primary btn-sm">确认</button>
+                                    <button class="btn btn-danger btn-sm">拒绝</button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- 无人机分配 -->
+            <div id="drone-assignment" class="page-content">
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">无人机分配</h3>
+                        <button class="btn btn-primary">查看全部</button>
+                    </div>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>无人机编号</th>
+                                <th>型号</th>
+                                <th>状态</th>
+                                <th>当前任务</th>
+                                <th>电量</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>#DRN-001</td>
+                                <td>DJI M300</td>
+                                <td><span class="status status-in-progress">配送中</span></td>
+                                <td>#ORD-2023-001</td>
+                                <td>78%</td>
+                                <td>
+                                    <button class="btn btn-danger" onclick="window.location.href='./map'">详情</button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>#DRN-002</td>
+                                <td>DJI M300</td>
+                                <td><span class="status status-completed">空闲</span></td>
+                                <td>-</td>
+                                <td>95%</td>
+                                <td>
+                                    <button class="btn btn-primary btn-sm">分配任务</button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>#DRN-003</td>
+                                <td>DJI Mavic 3</td>
+                                <td><span class="status status-completed">空闲</span></td>
+                                <td>-</td>
+                                <td>100%</td>
+                                <td>
+                                    <button class="btn btn-primary btn-sm">分配任务</button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- 物流状态 -->
+            <div id="logistics-status" class="page-content">
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">物流状态</h3>
+                        <button class="btn btn-primary">查看全部</button>
+                    </div>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>订单编号</th>
+                                <th>客户名称</th>
+                                <th>配送地址</th>
+                                <th>分配无人机</th>
+                                <th>状态</th>
+                                <th>预计到达</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>#ORD-2023-001</td>
+                                <td>张三</td>
+                                <td>北京市海淀区中关村大街1号</td>
+                                <td>#DRN-001</td>
+                                <td><span class="status status-in-progress">配送中</span></td>
+                                <td>14:30</td>
+                                <td>
+                                    <button class="btn btn-danger" onclick="window.location.href='./map2'">跟踪</button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>#ORD-2023-004</td>
+                                <td>赵六</td>
+                                <td>北京市东城区东长安街1号</td>
+                                <td>#DRN-004</td>
+                                <td><span class="status status-in-progress">配送中</span></td>
+                                <td>15:15</td>
+                                <td>
+                                    <button class="btn btn-primary btn-sm">跟踪</button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>#ORD-2023-005</td>
+                                <td>钱七</td>
+                                <td>北京市丰台区科技园2号</td>
+                                <td>#DRN-005</td>
+                                <td><span class="status status-completed">已完成</span></td>
+                                <td>已送达</td>
+                                <td>
+                                    <button class="btn btn-primary btn-sm">详情</button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- 数据分析 -->
+            <div id="data-analysis" class="page-content">
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">数据分析</h3>
+                    </div>
+                    <p>数据分析页面内容将在这里显示。</p>
+                </div>
+            </div>
+
+            <!-- 系统设置 -->
+            <div id="settings" class="page-content">
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">系统设置</h3>
+                    </div>
+                    <div class="settings-content">
+                        <div class="settings-tabs">
+                            <button class="settings-tab active" data-tab="general">常规设置</button>
+                            <button class="settings-tab" data-tab="delivery">配送设置</button>
+                            <button class="settings-tab" data-tab="notification">通知设置</button>
+                            <button class="settings-tab" data-tab="security">安全设置</button>
+                        </div>
+
+                        <div class="settings-panel active" id="general-settings">
+                            <form>
+                                <div class="form-group">
+                                    <label for="system-name">系统名称</label>
+                                    <input type="text" id="system-name" value="无人配送管理系统">
+                                </div>
+                                <div class="form-group">
+                                    <label for="timezone">时区设置</label>
+                                    <select id="timezone">
+                                        <option value="8" selected>UTC+8 (北京时间)</option>
+                                        <option value="0">UTC+0 (伦敦时间)</option>
+                                        <option value="-5">UTC-5 (纽约时间)</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label for="date-format">日期格式</label>
+                                    <select id="date-format">
+                                        <option value="Y-m-d">YYYY-MM-DD</option>
+                                        <option value="d/m/Y">DD/MM/YYYY</option>
+                                        <option value="m/d/Y">MM/DD/YYYY</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label for="items-per-page">每页显示项目数</label>
+                                    <input type="number" id="items-per-page" value="20" min="5" max="100">
+                                </div>
+                                <div class="form-actions">
+                                    <button type="button" class="btn btn-primary">保存设置</button>
+                                </div>
+                            </form>
+                        </div>
+
+                        <div class="settings-panel" id="delivery-settings">
+                            <form>
+                                <div class="form-group">
+                                    <label for="delivery-radius">配送半径 (公里)</label>
+                                    <input type="number" id="delivery-radius" value="10" min="1" max="50">
+                                </div>
+                                <div class="form-group">
+                                    <label for="delivery-hours">配送时间段</label>
+                                    <select id="delivery-hours" multiple>
+                                        <option value="8-12" selected>上午 (8:00-12:00)</option>
+                                        <option value="12-14" selected>中午 (12:00-14:00)</option>
+                                        <option value="14-18" selected>下午 (14:00-18:00)</option>
+                                        <option value="18-22">晚上 (18:00-22:00)</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label for="max-weight">最大承重 (kg)</label>
+                                    <input type="number" id="max-weight" value="5" min="1" max="20" step="0.5">
+                                </div>
+                                <div class="form-group">
+                                    <label for="weather-check">恶劣天气检查</label>
+                                    <select id="weather-check">
+                                        <option value="1" selected>启用</option>
+                                        <option value="0">禁用</option>
+                                    </select>
+                                </div>
+                                <div class="form-actions">
+                                    <button type="button" class="btn btn-primary">保存设置</button>
+                                </div>
+                            </form>
+                        </div>
+
+                        <div class="settings-panel" id="notification-settings">
+                            <form>
+                                <div class="form-group">
+                                    <label for="email-notifications">邮件通知</label>
+                                    <select id="email-notifications">
+                                        <option value="1" selected>启用</option>
+                                        <option value="0">禁用</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label for="sms-notifications">短信通知</label>
+                                    <select id="sms-notifications">
+                                        <option value="1">启用</option>
+                                        <option value="0" selected>禁用</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label for="notification-types">通知类型</label>
+                                    <select id="notification-types" multiple>
+                                        <option value="new-order" selected>新订单</option>
+                                        <option value="order-confirmed" selected>订单确认</option>
+                                        <option value="delivery-started" selected>配送开始</option>
+                                        <option value="delivery-completed" selected>配送完成</option>
+                                        <option value="system-alerts">系统警报</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label for="admin-email">管理员邮箱</label>
+                                    <input type="email" id="admin-email" value="admin@example.com">
+                                </div>
+                                <div class="form-actions">
+                                    <button type="button" class="btn btn-primary">保存设置</button>
+                                </div>
+                            </form>
+                        </div>
+
+                        <div class="settings-panel" id="security-settings">
+                            <form>
+                                <div class="form-group">
+                                    <label for="password-policy">密码策略</label>
+                                    <select id="password-policy">
+                                        <option value="simple">简单 (6位以上)</option>
+                                        <option value="medium" selected>中等 (8位以上，包含字母和数字)</option>
+                                        <option value="complex">复杂 (10位以上，包含大小写字母、数字和特殊字符)</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label for="login-attempts">最大登录尝试次数</label>
+                                    <input type="number" id="login-attempts" value="5" min="1" max="10">
+                                </div>
+                                <div class="form-group">
+                                    <label for="session-timeout">会话超时 (分钟)</label>
+                                    <input type="number" id="session-timeout" value="30" min="5" max="480">
+                                </div>
+                                <div class="form-group">
+                                    <label for="two-factor-auth">双因素认证</label>
+                                    <select id="two-factor-auth">
+                                        <option value="1">启用</option>
+                                        <option value="0" selected>禁用</option>
+                                    </select>
+                                </div>
+                                <div class="form-actions">
+                                    <button type="button" class="btn btn-primary">保存设置</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 用户管理 -->
+            <div id="user-management" class="page-content">
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">用户管理</h3>
+                    </div>
+                    <div class="user-actions">
+                        <div class="search-box">
+                            <input type="text" placeholder="搜索用户...">
+                            <button><i class="fas fa-search"></i></button>
+                        </div>
+                        <button class="btn btn-primary" id="add-user-btn">
+                            <i class="fas fa-plus"></i> 添加用户
+                        </button>
+                    </div>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>用户名</th>
+                                <th>姓名</th>
+                                <th>邮箱</th>
+                                <th>角色</th>
+                                <th>状态</th>
+                                <th>最后登录</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>admin</td>
+                                <td>系统管理员</td>
+                                <td>admin@example.com</td>
+                                <td><span class="role-badge role-admin">管理员</span></td>
+                                <td><span class="status status-completed">活跃</span></td>
+                                <td>2023-06-15 09:30</td>
+                                <td>
+                                    <button class="btn btn-info btn-sm">编辑</button>
+                                    <button class="btn btn-danger btn-sm">禁用</button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>manager1</td>
+                                <td>李经理</td>
+                                <td>manager1@example.com</td>
+                                <td><span class="role-badge role-manager">经理</span></td>
+                                <td><span class="status status-completed">活跃</span></td>
+                                <td>2023-06-15 10:15</td>
+                                <td>
+                                    <button class="btn btn-info btn-sm">编辑</button>
+                                    <button class="btn btn-danger btn-sm">禁用</button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>operator1</td>
+                                <td>张操作员</td>
+                                <td>operator1@example.com</td>
+                                <td><span class="role-badge role-operator">操作员</span></td>
+                                <td><span class="status status-pending">未激活</span></td>
+                                <td>-</td>
+                                <td>
+                                    <button class="btn btn-info btn-sm">编辑</button>
+                                    <button class="btn btn-primary btn-sm">激活</button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>operator2</td>
+                                <td>王操作员</td>
+                                <td>operator2@example.com</td>
+                                <td><span class="role-badge role-operator">操作员</span></td>
+                                <td><span class="status status-in-progress">已禁用</span></td>
+                                <td>2023-06-10 14:20</td>
+                                <td>
+                                    <button class="btn btn-info btn-sm">编辑</button>
+                                    <button class="btn btn-primary btn-sm">启用</button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- 退出登录 -->
+            <div id="logout" class="page-content">
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">退出登录</h3>
+                    </div>
+                    <div class="logout-content">
+                        <p>您确定要退出系统吗？</p>
+                        <button class="btn btn-danger" onclick="window.location.href='./login.html'">确认退出</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 订单详情弹窗 -->
+    <div id="orderDetailModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">订单详情</h3>
+                <span class="close-btn">&times;</span>
+            </div>
+            <div class="order-details">
+                <div class="detail-row">
+                    <div class="detail-label">订单编号:</div>
+                    <div class="detail-value" id="detail-order-id">#ORD-2023-001</div>
+                </div>
+                <div class="detail-row">
+                    <div class="detail-label">客户姓名:</div>
+                    <div class="detail-value" id="detail-customer-name">张三</div>
+                </div>
+                <div class="detail-row">
+                    <div class="detail-label">联系电话:</div>
+                    <div class="detail-value" id="detail-phone">13800138000</div>
+                </div>
+                <div class="detail-row">
+                    <div class="detail-label">配送地址:</div>
+                    <div class="detail-value" id="detail-address">北京市海淀区中关村大街1号</div>
+                </div>
+                <div class="detail-row">
+                    <div class="detail-label">下单时间:</div>
+                    <div class="detail-value" id="detail-order-time">2023-06-15 10:30</div>
+                </div>
+                <div class="detail-row">
+                    <div class="detail-label">订单状态:</div>
+                    <div class="detail-value"><span class="status status-pending">待确认</span></div>
+                </div>
+                <div class="detail-row">
+                    <div class="detail-label">订单金额:</div>
+                    <div class="detail-value" id="detail-amount">¥128.00</div>
+                </div>
+                <div class="detail-row">
+                    <div class="detail-label">商品清单:</div>
+                    <div class="detail-value" id="detail-items">
+                        <ul>
+                            <li>商品A × 2</li>
+                            <li>商品B × 1</li>
+                            <li>商品C × 3</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="detail-row">
+                    <div class="detail-label">备注信息:</div>
+                    <div class="detail-value" id="detail-notes">请尽快配送，谢谢！</div>
+                </div>
+            </div>
+            <div style="text-align: center;">
+                <button class="btn btn-primary" id="confirmOrderBtn">确认订单</button>
+                <button class="btn btn-danger" id="rejectOrderBtn">拒绝订单</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 用户编辑弹窗 -->
+    <div id="userEditModal" class="modal">
+        <div class="modal-content user-modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title" id="user-modal-title">添加新用户</h3>
+                <span class="close-btn">&times;</span>
+            </div>
+            <div class="order-details">
+                <form id="user-form">
+                    <div class="form-group">
+                        <label for="edit-username">用户名</label>
+                        <input type="text" id="edit-username" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="edit-fullname">姓名</label>
+                        <input type="text" id="edit-fullname" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="edit-email">邮箱</label>
+                        <input type="email" id="edit-email" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="edit-role">角色</label>
+                        <select id="edit-role" required>
+                            <option value="admin">管理员</option>
+                            <option value="manager">经理</option>
+                            <option value="operator" selected>操作员</option>
+                        </select>
+                    </div>
+                    <div class="form-group password-toggle">
+                        <label for="edit-password">密码</label>
+                        <input type="password" id="edit-password" required>
+                        <i class="fas fa-eye" id="toggle-password"></i>
+                    </div>
+                    <div class="form-group">
+                        <label for="edit-status">状态</label>
+                        <select id="edit-status">
+                            <option value="active" selected>活跃</option>
+                            <option value="inactive">未激活</option>
+                            <option value="disabled">已禁用</option>
+                        </select>
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-danger" id="cancel-user-btn">取消</button>
+                        <button type="submit" class="btn btn-primary">保存</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 页面切换功能
+        document.querySelectorAll('.nav-item').forEach(item => {
+            item.addEventListener('click', function() {
+                // 更新导航栏激活状态
+                document.querySelector('.nav-item.active').classList.remove('active');
+                this.classList.add('active');
+
+                // 获取目标页面ID
+                const targetPage = this.getAttribute('data-page');
+
+                // 更新页面标题
+                const pageTitle = this.querySelector('span').textContent;
+                document.getElementById('page-title').textContent = pageTitle;
+
+                // 隐藏所有页面内容
+                document.querySelectorAll('.page-content').forEach(page => {
+                    page.classList.remove('active');
+                });
+
+                // 显示目标页面内容
+                document.getElementById(targetPage).classList.add('active');
+
+                // 如果是退出页面，添加特殊处理
+                if(targetPage === 'logout') {
+                    document.querySelector('.btn-danger').addEventListener('click', function() {
+                        alert('您已成功退出系统');
+                        // 这里可以添加实际的退出逻辑
+                    });
+                }
+            });
+        });
+
+        // 模拟按钮点击效果
+        document.querySelectorAll('.btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                this.style.transform = 'scale(0.95)';
+                setTimeout(() => {
+                    this.style.transform = 'scale(1)';
+                }, 150);
+
+                // 这里可以添加按钮点击后的逻辑
+                if(this.textContent === '查看全部') {
+                    alert('将显示所有记录');
+                }
+            });
+        });
+
+        // 订单操作按钮
+        document.querySelectorAll('.btn-sm').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const action = this.textContent;
+                const row = this.closest('tr');
+                const orderId = row.querySelector('td').textContent;
+
+                if(action === '查看详情') {
+                    // 获取订单详情数据
+                    const customerName = row.querySelector('td:nth-child(2)').textContent;
+                    const address = row.querySelector('td:nth-child(3)').textContent;
+                    const orderTime = row.querySelector('td:nth-child(4)').textContent;
+
+                    // 填充弹窗内容
+                    document.getElementById('detail-order-id').textContent = orderId;
+                    document.getElementById('detail-customer-name').textContent = customerName;
+                    document.getElementById('detail-address').textContent = address;
+                    document.getElementById('detail-order-time').textContent = orderTime;
+
+                    // 显示弹窗
+                    document.getElementById('orderDetailModal').style.display = 'flex';
+                }
+                else if(action === '确认' || action === '拒绝') {
+                    alert(`${action}订单 ${orderId}`);
+                } else if(action === '分配任务') {
+                    alert(`为无人机 ${row.querySelector('td').textContent} 分配任务`);
+                } else if(action === '跟踪') {
+                    alert(`跟踪订单 ${orderId}`);
+                } else if(action === '编辑') {
+                    // 获取用户数据
+                    const username = row.querySelector('td:nth-child(1)').textContent;
+                    const fullname = row.querySelector('td:nth-child(2)').textContent;
+                    const email = row.querySelector('td:nth-child(3)').textContent;
+                    const role = row.querySelector('td:nth-child(4) span').textContent;
+                    const status = row.querySelector('td:nth-child(5) span').textContent;
+
+                    // 填充用户编辑表单
+                    document.getElementById('user-modal-title').textContent = '编辑用户';
+                    document.getElementById('edit-username').value = username;
+                    document.getElementById('edit-fullname').value = fullname;
+                    document.getElementById('edit-email').value = email;
+
+                    // 设置角色
+                    let roleValue = 'operator';
+                    if(role === '管理员') roleValue = 'admin';
+                    else if(role === '经理') roleValue = 'manager';
+                    document.getElementById('edit-role').value = roleValue;
+
+                    // 设置状态
+                    let statusValue = 'active';
+                    if(status === '未激活') statusValue = 'inactive';
+                    else if(status === '已禁用') statusValue = 'disabled';
+                    document.getElementById('edit-status').value = statusValue;
+
+                    // 显示弹窗
+                    document.getElementById('userEditModal').style.display = 'flex';
+                } else if(action === '激活' || action === '启用') {
+                    alert(`${action}用户 ${row.querySelector('td:nth-child(1)').textContent}`);
+                } else if(action === '禁用') {
+                    alert(`${action}用户 ${row.querySelector('td:nth-child(1)').textContent}`);
+                }
+            });
+        });
+
+        // 弹窗关闭按钮
+        document.querySelectorAll('.close-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                this.closest('.modal').style.display = 'none';
+            });
+        });
+
+        // 点击弹窗外部关闭弹窗
+        window.addEventListener('click', function(event) {
+            if (event.target.classList.contains('modal')) {
+                event.target.style.display = 'none';
+            }
+        });
+
+        // 订单操作按钮
+        document.getElementById('confirmOrderBtn').addEventListener('click', function() {
+            const orderId = document.getElementById('detail-order-id').textContent;
+            alert(`确认订单 ${orderId}`);
+            document.getElementById('orderDetailModal').style.display = 'none';
+        });
+
+        document.getElementById('rejectOrderBtn').addEventListener('click', function() {
+            const orderId = document.getElementById('detail-order-id').textContent;
+            alert(`拒绝订单 ${orderId}`);
+            document.getElementById('orderDetailModal').style.display = 'none';
+        });
+
+        // 设置选项卡切换
+        document.querySelectorAll('.settings-tab').forEach(tab => {
+            tab.addEventListener('click', function() {
+                // 更新选项卡激活状态
+                document.querySelector('.settings-tab.active').classList.remove('active');
+                this.classList.add('active');
+
+                // 获取目标面板ID
+                const targetPanel = this.getAttribute('data-tab') + '-settings';
+
+                // 隐藏所有面板
+                document.querySelectorAll('.settings-panel').forEach(panel => {
+                    panel.classList.remove('active');
+                });
+
+                // 显示目标面板
+                document.getElementById(targetPanel).classList.add('active');
+            });
+        });
+
+        // 添加用户按钮
+        document.getElementById('add-user-btn').addEventListener('click', function() {
+            // 重置表单
+            document.getElementById('user-form').reset();
+            document.getElementById('user-modal-title').textContent = '添加新用户';
+            document.getElementById('edit-password').required = true;
+
+            // 显示弹窗
+            document.getElementById('userEditModal').style.display = 'flex';
+        });
+
+        // 用户表单提交
+        document.getElementById('user-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const action = document.getElementById('user-modal-title').textContent;
+            const username = document.getElementById('edit-username').value;
+            alert(`${action} ${username} 成功`);
+            document.getElementById('userEditModal').style.display = 'none';
+        });
+
+        // 取消用户编辑
+        document.getElementById('cancel-user-btn').addEventListener('click', function() {
+            document.getElementById('userEditModal').style.display = 'none';
+        });
+
+        // 密码显示/隐藏切换
+        document.getElementById('toggle-password').addEventListener('click', function() {
+            const passwordInput = document.getElementById('edit-password');
+            if(passwordInput.type === 'password') {
+                passwordInput.type = 'text';
+                this.classList.remove('fa-eye');
+                this.classList.add('fa-eye-slash');
+            } else {
+                passwordInput.type = 'password';
+                this.classList.remove('fa-eye-slash');
+                this.classList.add('fa-eye');
+            }
+        });
+    </script>
+</body>
+</html>

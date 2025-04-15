@@ -1,0 +1,1219 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>商家订单管理系统</title>
+    <style>
+        :root {
+            --primary-color: #3498db;
+            --secondary-color: #2980b9;
+            --light-color: #ecf0f1;
+            --dark-color: #2c3e50;
+            --success-color: #2ecc71;
+            --warning-color: #f39c12;
+            --danger-color: #e74c3c;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background-color: #f5f5f5;
+        }
+
+        /* 导航栏样式 */
+        .navbar {
+            background-color: var(--dark-color);
+            color: white;
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+
+        .nav-links {
+            display: flex;
+            list-style: none;
+        }
+
+        .nav-links li {
+            margin-left: 1.5rem;
+        }
+
+        .nav-links a {
+            color: white;
+            text-decoration: none;
+            font-weight: 500;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            transition: background-color 0.3s;
+        }
+
+        .nav-links a:hover, .nav-links a.active {
+            background-color: var(--primary-color);
+        }
+
+        /* 主要内容区域 */
+        .container {
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+        }
+
+        .tab-content {
+            display: none;
+            background: white;
+            padding: 2rem;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            margin-top: 1rem;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        /* 表单样式 */
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+        }
+
+        input, select, textarea {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 1rem;
+        }
+
+        textarea {
+            min-height: 120px;
+            resize: vertical;
+        }
+
+        button {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: background-color 0.3s;
+        }
+
+        button:hover {
+            background-color: var(--secondary-color);
+        }
+
+        /* 地址选择行 */
+        .address-row {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .address-row select {
+            flex: 1;
+        }
+
+        /* 定位按钮 */
+        .location-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            background-color: var(--light-color);
+            color: var(--dark-color);
+            white-space: nowrap;
+        }
+
+        .location-btn:hover {
+            background-color: #ddd;
+        }
+
+        /* 货物类型选择样式 */
+        .options-container {
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 10px;
+            background-color: #f9f9f9;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .options-row {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+            justify-content: space-between;
+        }
+
+        .options-row:last-child {
+            margin-bottom: 0;
+        }
+
+        .option-item {
+            flex: 1;
+            display: inline-flex;
+            flex-direction: row;
+            align-items: center;
+            justify-content: center;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            background-color: #fff;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            min-width: 120px;
+            white-space: nowrap;
+            height: 44px;
+            box-sizing: border-box;
+            text-align: center;
+            position: relative;
+        }
+
+        .option-item:hover {
+            border-color: #3498db;
+            background-color: #f0f7fd;
+        }
+
+        .option-item input {
+            position: absolute;
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .option-item input:checked + span {
+            color: #3498db;
+            font-weight: bold;
+        }
+
+        .option-item span {
+            display: inline-block;
+            width: 100%;
+            text-align: center;
+            padding: 0 5px;
+            pointer-events: none;
+            transition: all 0.3s ease;
+        }
+
+        .option-item input[type="radio"] {
+            position: absolute;
+            opacity: 0;
+            width: 100%;
+            height: 100%;
+            left: 0;
+            top: 0;
+            margin: 0;
+            cursor: pointer;
+            z-index: 1;
+        }
+
+        /* 时间选择器放大样式 */
+        input[type="datetime-local"] {
+            padding: 12px 15px;
+            font-size: 16px;
+            height: auto;
+            line-height: 1.5;
+            width: 100%;
+            min-height: 44px;
+            background-color: white;
+            color: #333;
+        }
+
+        /* 订单列表样式 */
+        .order-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 1.5rem;
+            margin-top: 1.5rem;
+        }
+
+        .order-card {
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 1.5rem;
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .order-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .order-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid #eee;
+        }
+
+        .order-id {
+            font-weight: bold;
+            color: var(--dark-color);
+        }
+
+        .order-status {
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+
+        .status-pending {
+            background-color: var(--warning-color);
+            color: white;
+        }
+
+        .status-processing {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        .status-completed {
+            background-color: var(--success-color);
+            color: white;
+        }
+
+        .status-cancelled {
+            background-color: var(--danger-color);
+            color: white;
+        }
+
+        .order-details p {
+            margin-bottom: 0.5rem;
+        }
+
+        .order-actions {
+            margin-top: 1rem;
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .btn-secondary {
+            background-color: var(--light-color);
+            color: var(--dark-color);
+        }
+
+        .btn-secondary:hover {
+            background-color: #ddd;
+        }
+
+        /* 提交按钮样式 */
+        .submit-container {
+            display: flex;
+            justify-content: center;
+            margin-top: 2rem;
+        }
+
+        .submit-btn {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 1rem 3rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 1.2rem;
+            transition: all 0.3s;
+            font-weight: bold;
+        }
+
+        .submit-btn:hover {
+            background-color: var(--secondary-color);
+            transform: scale(1.05);
+        }
+
+        /* 模态框样式 */
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 2rem;
+            border-radius: 8px;
+            max-width: 600px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+            box-shadow: 0 0 20px rgba(0,0,0,0.2);
+        }
+
+        .modal-content h3 {
+            margin-bottom: 1rem;
+            color: var(--dark-color);
+        }
+
+        .modal-content h4 {
+            margin: 1rem 0 0.5rem;
+            color: var(--dark-color);
+        }
+
+        /* 重量输入样式 */
+        #estimated-weight {
+            padding: 0.75rem;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 1rem;
+        }
+
+        #weight-unit {
+            padding: 0.75rem;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 1rem;
+            height: 44px;
+        }
+
+        /* 响应式设计 */
+        @media (max-width: 768px) {
+            .navbar {
+                flex-direction: column;
+                padding: 1rem;
+            }
+
+            .nav-links {
+                margin-top: 1rem;
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+
+            .nav-links li {
+                margin: 0.5rem;
+            }
+
+            .address-row {
+                flex-direction: column;
+                gap: 1rem;
+            }
+
+            .options-row {
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+
+            .option-item {
+                margin-right: 0;
+                margin-bottom: 0.5rem;
+            }
+
+            .order-list {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <!-- 导航栏 -->
+    <nav class="navbar">
+        <div class="logo">订单管理系统</div>
+        <ul class="nav-links">
+            <li><a href="#" class="active" onclick="switchTab('create-order')">创建订单</a></li>
+            <li><a href="#" onclick="switchTab('active-orders')">进行中订单</a></li>
+            <li><a href="#" onclick="switchTab('completed-orders')">已完成订单</a></li>
+        </ul>
+    </nav>
+
+    <!-- 主要内容 -->
+    <div class="container">
+        <!-- 创建订单 -->
+        <div id="create-order" class="tab-content active">
+            <h2>创建新订单</h2>
+            <form id="order-form">
+                <div class="form-group">
+                    <label for="customer-name">收件人姓名</label>
+                    <input type="text" id="customer-name" required>
+                </div>
+                <div class="form-group">
+                    <label for="customer-phone">收件人电话</label>
+                    <input type="tel" id="customer-phone" required>
+                </div>
+
+                <!-- 送货地址 -->
+                <div class="form-group">
+                    <label>收件人地址</label>
+                    <div class="address-row">
+                        <select id="delivery-province" required>
+                            <option value="">选择省份</option>
+                        </select>
+                        <select id="delivery-city" required disabled>
+                            <option value="">选择城市</option>
+                        </select>
+                    </div>
+                    <div class="address-row">
+                        <select id="delivery-district" required disabled>
+                            <option value="">选择区/县</option>
+                        </select>
+                    </div>
+                    <textarea id="delivery-address" placeholder="详细地址（街道、门牌号等）" required></textarea>
+                </div>
+
+                <!-- 取货地址 -->
+                <div class="form-group">
+                    <label for="pickup-address">取货地址</label>
+                    <div class="address-row">
+                        <select id="pickup-province">
+                            <option value="">选择省份</option>
+                        </select>
+                        <select id="pickup-city" disabled>
+                            <option value="">选择城市</option>
+                        </select>
+                    </div>
+                    <div class="address-row">
+                        <select id="pickup-district" disabled>
+                            <option value="">选择区/县</option>
+                        </select>
+                        <button type="button" class="location-btn" onclick="getPickupLocation()">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                                <circle cx="12" cy="10" r="3"></circle>
+                            </svg>
+                            定位取货位置
+                        </button>
+                    </div>
+                    <textarea id="pickup-address" placeholder="详细取货地址（街道、门牌号等）"></textarea>
+                </div>
+
+                <!-- 货物类型选择 -->
+                <div class="form-group">
+                    <label>货物类型</label>
+                    <div class="options-container">
+                        <div class="options-row">
+                            <label class="option-item">
+                                <input type="checkbox" name="goods-type" value="food">
+                                <span>食品</span>
+                            </label>
+                            <label class="option-item">
+                                <input type="checkbox" name="goods-type" value="fresh">
+                                <span>生鲜</span>
+                            </label>
+                        </div>
+                        <div class="options-row">
+                            <label class="option-item">
+                                <input type="checkbox" name="goods-type" value="electronics">
+                                <span>电子产品</span>
+                            </label>
+                            <label class="option-item">
+                                <input type="checkbox" name="goods-type" value="clothing">
+                                <span>服装</span>
+                            </label>
+                        </div>
+                        <div class="options-row">
+                            <label class="option-item">
+                                <input type="checkbox" name="goods-type" value="daily">
+                                <span>日用品</span>
+                            </label>
+                            <label class="option-item">
+                                <input type="checkbox" name="goods-type" value="office">
+                                <span>办公用品</span>
+                            </label>
+                        </div>
+                        <div class="options-row">
+                            <label class="option-item">
+                                <input type="checkbox" name="goods-type" value="furniture">
+                                <span>家具</span>
+                            </label>
+                            <label class="option-item">
+                                <input type="checkbox" name="goods-type" value="other">
+                                <span>其他</span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 预估货物质量 -->
+                <div class="form-group">
+                    <label for="estimated-weight">预估货物质量</label>
+                    <div style="display: flex; align-items: center; gap: 1rem;">
+                        <input type="number" id="estimated-weight" min="0" step="0.1" style="flex: 1;">
+                        <select id="weight-unit" style="width: 80px;">
+                            <option value="kg">千克</option>
+                        </select>
+                    </div>
+                    <div style="margin-top: 0.5rem;">
+                        <small>请根据货物实际情况预估总质量</small>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>期望送达时间</label>
+                    <div class="options-container">
+                        <div class="options-row">
+                            <label class="option-item">
+                                <input type="radio" name="delivery-time-option" value="now" checked>
+                                <span>立即送出</span>
+                            </label>
+                            <label class="option-item">
+                                <input type="radio" name="delivery-time-option" value="asap">
+                                <span>尽快送达</span>
+                            </label>
+                        </div>
+                        <div class="options-row">
+                            <label class="option-item">
+                                <input type="radio" name="delivery-time-option" value="schedule">
+                                <span>指定时间</span>
+                            </label>
+                            <label class="option-item">
+                                <input type="radio" name="delivery-time-option" value="flexible">
+                                <span>时间灵活</span>
+                            </label>
+                        </div>
+                    </div>
+                    <div class="time-input">
+                        <input type="datetime-local" id="delivery-time">
+                    </div>
+                </div>
+
+                <div class="submit-container">
+                    <button type="submit" class="submit-btn">提交订单</button>
+                </div>
+            </form>
+
+            <div id="order-confirmation" style="display: none; margin-top: 2rem; padding: 1.5rem; background: #f8f9fa; border-radius: 8px;">
+                <h3>订单已创建!</h3>
+                <p>您的订单编号是: <strong id="order-id-display"></strong></p>
+                <p>您可以在"进行中订单"页面查看订单状态。</p>
+                <button class="btn-secondary" onclick="switchTab('active-orders')">查看我的订单</button>
+            </div>
+        </div>
+
+        <!-- 进行中订单 -->
+        <div id="active-orders" class="tab-content">
+            <h2>进行中订单</h2>
+            <p>以下是您当前正在处理的订单:</p>
+
+            <div class="order-list" id="active-orders-list">
+                <!-- 订单卡片将通过JavaScript动态生成 -->
+            </div>
+        </div>
+
+        <!-- 已完成订单 -->
+        <div id="completed-orders" class="tab-content">
+            <h2>已完成订单</h2>
+            <p>以下是您已完成的订单历史:</p>
+
+            <div class="order-list" id="completed-orders-list">
+                <!-- 订单卡片将通过JavaScript动态生成 -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 订单数据存储
+        let orders = [];
+
+        // 示例数据（开发用）
+        const exampleOrders = [
+            {
+                orderId: 'ORD789012',
+                name: '张先生',
+                phone: '13800138000',
+                deliveryAddress: {
+                    province: '北京市',
+                    city: '朝阳区',
+                    district: '',
+                    detailed: '国贸大厦A座1203室'
+                },
+                pickupAddress: {
+                    province: '北京市',
+                    city: '海淀区',
+                    district: '',
+                    detailed: '中关村大街1号'
+                },
+                goodsTypes: ['fresh'],
+                estimatedWeight: '5kg',
+                deliveryOption: 'now',
+                deliveryTime: '立即送出',
+                status: 'processing',
+                createdAt: new Date('2023-12-15T10:30:00').toISOString()
+            },
+            {
+                orderId: 'ORD345678',
+                name: '李女士',
+                phone: '13900139000',
+                deliveryAddress: {
+                    province: '上海市',
+                    city: '浦东新区',
+                    district: '',
+                    detailed: '张江高科技园区8号楼'
+                },
+                pickupAddress: {
+                    province: '',
+                    city: '',
+                    district: '',
+                    detailed: '无'
+                },
+                goodsTypes: ['food'],
+                estimatedWeight: '2.5kg',
+                deliveryOption: 'schedule',
+                deliveryTime: '2023-12-20T10:00',
+                status: 'pending',
+                createdAt: new Date('2023-12-14T15:45:00').toISOString()
+            },
+            {
+                orderId: 'ORD123456',
+                name: '王先生',
+                phone: '13700137000',
+                deliveryAddress: {
+                    province: '广州市',
+                    city: '天河区',
+                    district: '',
+                    detailed: '体育西路123号'
+                },
+                pickupAddress: {
+                    province: '广州市',
+                    city: '越秀区',
+                    district: '',
+                    detailed: '中山五路'
+                },
+                goodsTypes: ['electronics'],
+                estimatedWeight: '0.8kg',
+                deliveryOption: 'asap',
+                deliveryTime: '尽快送达',
+                status: 'completed',
+                createdAt: new Date('2023-12-10T09:15:00').toISOString()
+            },
+            {
+                orderId: 'ORD901234',
+                name: '赵女士',
+                phone: '13600136000',
+                deliveryAddress: {
+                    province: '深圳市',
+                    city: '南山区',
+                    district: '',
+                    detailed: '科技园A栋'
+                },
+                pickupAddress: {
+                    province: '',
+                    city: '',
+                    district: '',
+                    detailed: '无'
+                },
+                goodsTypes: ['clothing'],
+                estimatedWeight: '1.2kg',
+                deliveryOption: 'flexible',
+                deliveryTime: '时间灵活',
+                status: 'cancelled',
+                createdAt: new Date('2023-12-05T11:20:00').toISOString()
+            }
+        ];
+
+        // 初始化时加载示例数据
+        orders = [...exampleOrders];
+
+        // 简化的中国省份数据
+        const provinces = [
+            "北京市", "上海市", "广州市", "深圳市", "天津市",
+            "重庆市", "杭州市", "南京市", "成都市", "武汉市"
+        ];
+
+        // 简化的城市数据
+        const cities = {
+            "北京市": ["东城区", "西城区", "朝阳区", "海淀区", "丰台区"],
+            "上海市": ["黄浦区", "徐汇区", "长宁区", "静安区", "浦东新区"],
+            "广州市": ["天河区", "越秀区", "海珠区", "白云区", "黄埔区"],
+            "深圳市": ["福田区", "罗湖区", "南山区", "宝安区", "龙岗区"],
+            "天津市": ["和平区", "河东区", "河西区", "南开区", "河北区"],
+            "重庆市": ["渝中区", "大渡口区", "江北区", "沙坪坝区", "九龙坡区"],
+            "杭州市": ["上城区", "下城区", "江干区", "拱墅区", "西湖区"],
+            "南京市": ["玄武区", "秦淮区", "建邺区", "鼓楼区", "浦口区"],
+            "成都市": ["锦江区", "青羊区", "金牛区", "武侯区", "成华区"],
+            "武汉市": ["江岸区", "江汉区", "硚口区", "汉阳区", "武昌区"]
+        };
+
+        // 简化的区县数据
+        const districts = {
+            "东城区": ["全部", "东华门街道", "景山街道", "交道口街道"],
+            "朝阳区": ["全部", "朝外街道", "建外街道", "三里屯街道"],
+            "黄浦区": ["全部", "南京东路街道", "外滩街道", "豫园街道"],
+            "浦东新区": ["全部", "陆家嘴街道", "潍坊新村街道", "洋泾街道"],
+            "天河区": ["全部", "天河南街道", "林和街道", "冼村街道"],
+            "南山区": ["全部", "南头街道", "南山街道", "沙河街道"]
+        };
+
+        // 初始化页面
+        document.addEventListener('DOMContentLoaded', function() {
+            // 加载省份数据 - 送货地址
+            const deliveryProvinceSelect = document.getElementById('delivery-province');
+            const pickupProvinceSelect = document.getElementById('pickup-province');
+
+            provinces.forEach(province => {
+                // 送货地址省份
+                const deliveryOption = document.createElement('option');
+                deliveryOption.value = province;
+                deliveryOption.textContent = province;
+                deliveryProvinceSelect.appendChild(deliveryOption);
+
+                // 取货地址省份
+                const pickupOption = document.createElement('option');
+                pickupOption.value = province;
+                pickupOption.textContent = province;
+                pickupProvinceSelect.appendChild(pickupOption);
+            });
+
+            // 送货地址省份选择变化时加载城市
+            deliveryProvinceSelect.addEventListener('change', function() {
+                updateCitySelect(this.value, 'delivery');
+            });
+
+            // 取货地址省份选择变化时加载城市
+            pickupProvinceSelect.addEventListener('change', function() {
+                updateCitySelect(this.value, 'pickup');
+            });
+
+            // 送货地址城市选择变化时加载区县
+            document.getElementById('delivery-city').addEventListener('change', function() {
+                updateDistrictSelect(this.value, 'delivery');
+            });
+
+            // 取货地址城市选择变化时加载区县
+            document.getElementById('pickup-city').addEventListener('change', function() {
+                updateDistrictSelect(this.value, 'pickup');
+            });
+
+            // 为选项添加点击效果
+            document.querySelectorAll('.option-item').forEach(item => {
+                item.addEventListener('click', function() {
+                    const input = this.querySelector('input');
+                    if (input.type === 'checkbox') {
+                        input.checked = !input.checked;
+                    } else if (input.type === 'radio') {
+                        input.checked = true;
+                    }
+
+                    // 更新选中样式
+                    if (input.checked) {
+                        this.style.backgroundColor = '#e9ecef';
+                        this.style.borderColor = '#adb5bd';
+                    } else {
+                        this.style.backgroundColor = '#fff';
+                        this.style.borderColor = '#ccc';
+                    }
+                });
+            });
+
+            // 送达时间选项切换
+            document.querySelectorAll('input[name="delivery-time-option"]').forEach(radio => {
+                radio.addEventListener('change', function() {
+                    const timeInput = document.getElementById('delivery-time');
+                    timeInput.disabled = this.value !== 'schedule';
+
+                    // 如果是"指定时间"选项，设置最小日期为当前时间
+                    if (this.value === 'schedule') {
+                        const now = new Date();
+                        const year = now.getFullYear();
+                        const month = String(now.getMonth() + 1).padStart(2, '0');
+                        const day = String(now.getDate()).padStart(2, '0');
+                        const hours = String(now.getHours()).padStart(2, '0');
+                        const minutes = String(now.getMinutes()).padStart(2, '0');
+
+                        timeInput.min = `${year}-${month}-${day}T${hours}:${minutes}`;
+                        timeInput.value = `${year}-${month}-${day}T${hours}:${minutes}`;
+                        timeInput.focus();
+                    }
+                });
+            });
+
+            // 初始化时禁用时间输入
+            document.getElementById('delivery-time').disabled = true;
+
+            // 渲染初始订单列表
+            renderAllOrderLists();
+        });
+
+        // 更新城市选择下拉框
+        function updateCitySelect(province, type) {
+            const citySelect = document.getElementById(`${type}-city`);
+            const districtSelect = document.getElementById(`${type}-district`);
+
+            citySelect.innerHTML = '<option value="">选择城市</option>';
+            citySelect.disabled = !province;
+
+            if (province && cities[province]) {
+                cities[province].forEach(city => {
+                    const option = document.createElement('option');
+                    option.value = city;
+                    option.textContent = city;
+                    citySelect.appendChild(option);
+                });
+            } else if (province) {
+                // 如果省份没有下级城市数据，则直接允许选择区县
+                const option = document.createElement('option');
+                option.value = province;
+                option.textContent = province;
+                citySelect.appendChild(option);
+                citySelect.disabled = false;
+            }
+
+            // 重置区县
+            districtSelect.innerHTML = '<option value="">选择区/县</option>';
+            districtSelect.disabled = true;
+        }
+
+        // 更新区县选择下拉框
+        function updateDistrictSelect(city, type) {
+            const districtSelect = document.getElementById(`${type}-district`);
+
+            districtSelect.innerHTML = '<option value="">选择区/县</option>';
+            districtSelect.disabled = !city;
+
+            if (city && districts[city]) {
+                districts[city].forEach(district => {
+                    const option = document.createElement('option');
+                    option.value = district;
+                    option.textContent = district;
+                    districtSelect.appendChild(option);
+                });
+            }
+        }
+
+        // 切换标签页
+        function switchTab(tabId) {
+            // 更新导航栏活动状态
+            document.querySelectorAll('.nav-links a').forEach(link => {
+                link.classList.remove('active');
+            });
+            event.target.classList.add('active');
+
+            // 显示对应的内容区域
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.remove('active');
+            });
+            document.getElementById(tabId).classList.add('active');
+
+            // 根据标签页渲染对应订单
+            if(tabId === 'active-orders') {
+                renderOrderList('active-orders-list', ['pending', 'processing']);
+            } else if(tabId === 'completed-orders') {
+                renderOrderList('completed-orders-list', ['completed', 'cancelled']);
+            }
+        }
+
+        // 获取取货位置
+        function getPickupLocation() {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(
+                    function(position) {
+                        alert(`定位成功! 纬度: ${position.coords.latitude}, 经度: ${position.coords.longitude}`);
+                        // 实际应用中这里会调用地图API反向解析地址
+                        // 并自动填充地址字段
+                        document.getElementById('pickup-address').value =
+                            "根据定位自动填充的详细取货地址(示例)";
+
+                        // 模拟自动选择北京市朝阳区
+                        document.getElementById('pickup-province').value = "北京市";
+                        document.getElementById('pickup-province').dispatchEvent(new Event('change'));
+
+                        // 需要延迟以确保城市选项已加载
+                        setTimeout(() => {
+                            document.getElementById('pickup-city').value = "朝阳区";
+                            document.getElementById('pickup-city').dispatchEvent(new Event('change'));
+                        }, 100);
+                    },
+                    function(error) {
+                        alert(`定位失败: ${error.message}`);
+                    },
+                    { enableHighAccuracy: true, timeout: 5000, maximumAge: 0 }
+                );
+            } else {
+                alert("您的浏览器不支持地理定位功能");
+            }
+        }
+
+        // 提交订单表单
+        document.getElementById('order-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            // 验证送货地址是否完整
+            const deliveryProvince = document.getElementById('delivery-province').value;
+            const deliveryCity = document.getElementById('delivery-city').value;
+            const deliveryAddress = document.getElementById('delivery-address').value;
+
+            if (!deliveryProvince || !deliveryCity || !deliveryAddress) {
+                alert('请填写完整的送货地址');
+                return;
+            }
+
+            // 如果有取货地址，验证是否完整
+            const pickupAddress = document.getElementById('pickup-address').value;
+            if (pickupAddress) {
+                const pickupProvince = document.getElementById('pickup-province').value;
+                const pickupCity = document.getElementById('pickup-city').value;
+
+                if (!pickupProvince || !pickupCity) {
+                    alert('请填写完整的取货地址省市信息');
+                    return;
+                }
+            }
+
+            // 生成随机订单ID
+            const orderId = 'ORD' + Math.floor(Math.random() * 1000000);
+
+            // 获取选中的货物类型
+            const selectedGoodsTypes = Array.from(document.querySelectorAll('input[name="goods-type"]:checked'))
+                .map(checkbox => checkbox.value);
+
+            // 获取预估重量
+            const estimatedWeight = document.getElementById('estimated-weight').value;
+            const weightUnit = document.getElementById('weight-unit').value;
+            const weightDisplay = estimatedWeight ? `${estimatedWeight}${weightUnit}` : '未填写';
+
+            // 获取送达时间选项
+            const deliveryOption = document.querySelector('input[name="delivery-time-option"]:checked').value;
+            let deliveryTime;
+
+            switch(deliveryOption) {
+                case 'now':
+                    deliveryTime = '立即送出';
+                    break;
+                case 'asap':
+                    deliveryTime = '尽快送达';
+                    break;
+                case 'flexible':
+                    deliveryTime = '时间灵活';
+                    break;
+                case 'schedule':
+                    deliveryTime = document.getElementById('delivery-time').value;
+                    break;
+                default:
+                    deliveryTime = '立即送出';
+            }
+
+            // 创建完整的订单对象
+            const order = {
+                orderId: orderId,
+                name: document.getElementById('customer-name').value,
+                phone: document.getElementById('customer-phone').value,
+                deliveryAddress: {
+                    province: deliveryProvince,
+                    city: deliveryCity,
+                    district: document.getElementById('delivery-district').value || '',
+                    detailed: deliveryAddress
+                },
+                pickupAddress: {
+                    province: document.getElementById('pickup-province').value || '',
+                    city: document.getElementById('pickup-city').value || '',
+                    district: document.getElementById('pickup-district').value || '',
+                    detailed: pickupAddress || '无'
+                },
+                goodsTypes: selectedGoodsTypes,
+                estimatedWeight: weightDisplay,
+                deliveryOption: deliveryOption,
+                deliveryTime: deliveryTime,
+                status: 'pending',
+                createdAt: new Date().toISOString()
+            };
+
+            // 存入订单数组
+            orders.push(order);
+
+            // 显示确认信息
+            document.getElementById('order-id-display').textContent = orderId;
+            document.getElementById('order-form').style.display = 'none';
+            document.getElementById('order-confirmation').style.display = 'block';
+
+            // 清空表单
+            this.reset();
+            // 重置地址选择
+            resetAddressSelect('delivery');
+            resetAddressSelect('pickup');
+            // 重置送达时间选项
+            document.getElementById('delivery-time').disabled = true;
+            document.querySelector('input[name="delivery-time-option"][value="now"]').checked = true;
+            // 重置选中样式
+            document.querySelectorAll('.option-item').forEach(item => {
+                item.style.backgroundColor = '#fff';
+                item.style.borderColor = '#ccc';
+            });
+
+            // 重新渲染订单列表
+            renderAllOrderLists();
+        });
+
+        // 重置地址选择
+        function resetAddressSelect(type) {
+            document.getElementById(`${type}-city`).innerHTML = '<option value="">选择城市</option>';
+            document.getElementById(`${type}-city`).disabled = true;
+            document.getElementById(`${type}-district`).innerHTML = '<option value="">选择区/县</option>';
+            document.getElementById(`${type}-district`).disabled = true;
+        }
+
+        // 查看订单详情
+        function viewOrderDetails(orderId) {
+            const order = orders.find(o => o.orderId === orderId);
+            if (order) {
+                // 创建详情HTML
+                const goodsTypesMap = {
+                    'food': '食品',
+                    'fresh': '生鲜',
+                    'electronics': '电子产品',
+                    'clothing': '服装',
+                    'daily': '日用品',
+                    'office': '办公用品',
+                    'furniture': '家具',
+                    'other': '其他'
+                };
+
+                const goodsTypesText = order.goodsTypes.map(type => goodsTypesMap[type] || type).join(', ');
+
+                const details = `
+                    <h3>订单详情 #${order.orderId}</h3>
+                    <p><strong>状态:</strong> <span class="order-status status-${order.status}">${getStatusText(order.status)}</span></p>
+                    <p><strong>客户姓名:</strong> ${order.name}</p>
+                    <p><strong>联系电话:</strong> ${order.phone}</p>
+
+                    <h4>送货信息</h4>
+                    <p>${order.deliveryAddress.province} ${order.deliveryAddress.city} ${order.deliveryAddress.district}</p>
+                    <p>${order.deliveryAddress.detailed}</p>
+
+                    <h4>取货信息</h4>
+                    <p>${order.pickupAddress.province || '无'} ${order.pickupAddress.city || ''} ${order.pickupAddress.district || ''}</p>
+                    <p>${order.pickupAddress.detailed || '无'}</p>
+
+                    <h4>货物类型</h4>
+                    <p>${goodsTypesText}</p>
+
+                    <h4>预估重量</h4>
+                    <p>${order.estimatedWeight || '未填写'}</p>
+
+                    <h4>送达时间</h4>
+                    <p>${order.deliveryTime}</p>
+
+                    <p><small>创建时间: ${new Date(order.createdAt).toLocaleString()}</small></p>
+                `;
+
+                // 创建并显示模态框
+                const modal = document.createElement('div');
+                modal.className = 'modal';
+                modal.innerHTML = `
+                    <div class="modal-content">
+                        ${details}
+                        <div style="margin-top: 1.5rem; text-align: center;">
+                            <button onclick="this.parentElement.parentElement.remove()">关闭</button>
+                            ${order.status === 'pending' ? `<button class="btn-secondary" style="margin-left: 1rem;" onclick="cancelOrder('${order.orderId}'); this.parentElement.parentElement.remove()">取消订单</button>` : ''}
+                        </div>
+                    </div>
+                `;
+                document.body.appendChild(modal);
+            } else {
+                alert('未找到该订单');
+            }
+        }
+
+        // 取消订单
+        function cancelOrder(orderId) {
+            if(confirm(`确定要取消订单 ${orderId} 吗?`)) {
+                const orderIndex = orders.findIndex(o => o.orderId === orderId);
+                if (orderIndex !== -1) {
+                    orders[orderIndex].status = 'cancelled';
+                    renderAllOrderLists();
+                    alert(`订单 ${orderId} 已取消`);
+                } else {
+                    alert('取消订单失败: 未找到该订单');
+                }
+            }
+        }
+
+        // 渲染所有订单列表
+        function renderAllOrderLists() {
+            renderOrderList('active-orders-list', ['pending', 'processing']);
+            renderOrderList('completed-orders-list', ['completed', 'cancelled']);
+        }
+
+        // 动态生成订单列表
+        function renderOrderList(listId, statusFilters) {
+            const container = document.getElementById(listId);
+            container.innerHTML = '';
+
+            const filteredOrders = orders.filter(o => statusFilters.includes(o.status));
+
+            if (filteredOrders.length === 0) {
+                container.innerHTML = '<p style="grid-column: 1 / -1; text-align: center; color: #666;">暂无订单</p>';
+                return;
+            }
+
+            filteredOrders.forEach(order => {
+                const goodsTypesMap = {
+                    'food': '食品',
+                    'fresh': '生鲜',
+                    'electronics': '电子产品',
+                    'clothing': '服装',
+                    'daily': '日用品',
+                    'office': '办公用品',
+                    'furniture': '家具',
+                    'other': '其他'
+                };
+
+                const goodsTypesText = order.goodsTypes.map(type => goodsTypesMap[type] || type).join(', ');
+
+                const card = document.createElement('div');
+                card.className = 'order-card';
+                card.dataset.orderId = order.orderId;
+                card.innerHTML = `
+                    <div class="order-header">
+                        <span class="order-id">${order.orderId}</span>
+                        <span class="order-status status-${order.status}">${getStatusText(order.status)}</span>
+                    </div>
+                    <div class="order-details">
+                        <p><strong>客户:</strong> ${order.name}</p>
+                        <p><strong>电话:</strong> ${order.phone}</p>
+                        <p><strong>货物类型:</strong> ${goodsTypesText}</p>
+                        <p><strong>预估重量:</strong> ${order.estimatedWeight || '未填写'}</p>
+                        <p><strong>送货地址:</strong> ${order.deliveryAddress.city}${order.deliveryAddress.district ? ' ' + order.deliveryAddress.district : ''}</p>
+                        <p><strong>送达时间:</strong> ${order.deliveryTime}</p>
+                    </div>
+                    <div class="order-actions">
+                        <button onclick="viewOrderDetails('${order.orderId}')">查看详情</button>
+                        ${order.status === 'pending' ? `<button class="btn-secondary" onclick="cancelOrder('${order.orderId}')">取消订单</button>` : ''}
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        // 状态文本映射
+        function getStatusText(status) {
+            const statusMap = {
+                'pending': '待确认',
+                'processing': '处理中',
+                'completed': '已完成',
+                'cancelled': '已取消'
+            };
+            return statusMap[status] || status;
+        }
+    </script>
+</body>
+</html>

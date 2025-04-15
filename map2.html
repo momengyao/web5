@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>无人机配送路径规划</title>
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            font-family: "Microsoft YaHei", sans-serif;
+        }
+        #container {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+        #map-container {
+            flex: 1;
+            width: 100%;
+        }
+        #info-panel {
+            padding: 15px;
+            background: #f5f5f5;
+            border-top: 1px solid #ddd;
+        }
+        #waypoints-list {
+            margin-top: 10px;
+            max-height: 150px;
+            overflow-y: auto;
+            border: 1px solid #ddd;
+            padding: 10px;
+            background: white;
+            border-radius: 4px;
+        }
+        #drone-status {
+            margin-top: 10px;
+            padding: 10px;
+            background: #e8f4fc;
+            border-radius: 4px;
+            font-weight: bold;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .path-info {
+            margin-top: 10px;
+            padding: 8px;
+            background: #f0f8ff;
+            border-radius: 4px;
+        }
+        .status-icon {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+        .drone-icon {
+            background-color: #ff0000;
+        }
+        .control-btn {
+            padding: 5px 10px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            margin-left: 10px;
+        }
+        .control-btn:hover {
+            background-color: #45a049;
+        }
+        .jump-btn {
+            padding: 5px 10px;
+            background-color: #2196F3;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        .jump-btn:hover {
+            background-color: #0b7dda;
+        }
+    </style>
+</head>
+<body>
+    <div id="container">
+        <div id="map-container"></div>
+        <div id="info-panel">
+            <div id="drone-status">
+                <div>
+                    <span class="status-icon drone-icon"></span>
+                    无人机 #DRN-001 当前位置: 天安门
+
+                </div>
+
+            </div>
+
+    </div>
+
+    <script src="https://webapi.amap.com/maps?v=2.0&key=b927aa87e7e823942320065878154892"></script>
+    <script>
+        // 初始化地图
+        var map = new AMap.Map('map-container', {
+            zoom: 14,
+            center: [116.397428, 39.90923] // 天安门坐标
+        });
+
+        // 预设航点坐标（名称, 经度, 纬度）
+        var waypoints = [
+            {name: "故宫", lnglat: [116.397026, 39.917078]},
+            {name: "景山公园", lnglat: [116.396673, 39.92442]},
+            {name: "北海公园", lnglat: [116.391265, 39.925458]}
+        ];
+
+        // 页面加载完成后自动执行
+        window.onload = function() {
+            // 1. 计算最优路径
+            var optimalPath = calculateOptimalPath(waypoints);
+
+            // 2. 添加航点标记（蓝色标记）
+            optimalPath.forEach(function(point, index) {
+                new AMap.Marker({
+                    position: point.lnglat,
+                    map: map,
+                    title: point.name,
+                    label: {
+                        content: (index + 1).toString(),
+                        offset: new AMap.Pixel(-5, -5)
+                    }
+                });
+            });
+
+            // 3. 绘制路径
+            drawPath(optimalPath);
+
+            // 4. 在第二个航点位置添加无人机标记（红色圆点）
+            var dronePositionIndex = 1; // 第二个航点(索引从0开始)
+            addDroneMarker(optimalPath[dronePositionIndex].lnglat);
+            updateDroneStatus(optimalPath[dronePositionIndex].name);
+
+            // 5. 更新航点列表
+            updateWaypointsList(optimalPath);
+
+            // 6. 调整视图以适应所有标记和路径
+            map.setFitView();
+
+            // 7. 添加按钮点击事件
+            document.getElementById('jumpToMenu').addEventListener('click', function() {
+
+                window.location.href = encodeURI('./管理.html#data-analysis');
+
+
+            });
+        };
+
+        // 添加无人机标记（红色圆点）
+        function addDroneMarker(position) {
+            // 创建红色圆点标记
+            new AMap.Marker({
+                position: position,
+                map: map,
+                icon: new AMap.Icon({
+                    size: new AMap.Size(20, 20),
+                    image: "data:image/svg+xml;charset=utf-8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'><circle cx='10' cy='10' r='10' fill='red'/></svg>",
+                    imageOffset: new AMap.Pixel(0, 0)
+                }),
+                zIndex: 100
+            });
+
+            // 添加脉冲动画效果
+            new AMap.Circle({
+                center: position,
+                radius: 10,
+                strokeColor: "#FF0000",
+                strokeOpacity: 0.8,
+                strokeWeight: 2,
+                fillColor: "#FF0000",
+                fillOpacity: 0.3,
+                zIndex: 99,
+                map: map
+            });
+        }
+
+        // 计算最优路径（K近邻算法）
+        function calculateOptimalPath(points) {
+            if (points.length < 2) return points;
+
+            var path = [];
+            var unvisited = points.slice();
+
+            // 从第一个点开始
+            var current = unvisited.shift();
+            path.push(current);
+
+            while (unvisited.length > 0) {
+                // 找到最近的未访问点
+                var nearestIndex = 0;
+                var minDistance = getDistance(current.lnglat, unvisited[0].lnglat);
+
+                for (var i = 1; i < unvisited.length; i++) {
+                    var distance = getDistance(current.lnglat, unvisited[i].lnglat);
+                    if (distance < minDistance) {
+                        minDistance = distance;
+                        nearestIndex = i;
+                    }
+                }
+
+                // 移动到最近的点
+                current = unvisited.splice(nearestIndex, 1)[0];
+                path.push(current);
+            }
+
+            return path;
+        }
+
+        // 计算两点间距离
+        function getDistance(lnglat1, lnglat2) {
+            var dx = lnglat1[0] - lnglat2[0];
+            var dy = lnglat1[1] - lnglat2[1];
+            return Math.sqrt(dx * dx + dy * dy);
+        }
+
+        // 绘制路径
+        function drawPath(path) {
+            if (path.length < 2) return;
+
+            var lineArr = path.map(function(point) {
+                return point.lnglat;
+            });
+
+            new AMap.Polyline({
+                path: lineArr,
+                isOutline: true,
+                outlineColor: '#ffeeff',
+                borderWeight: 1,
+                strokeColor: "#3366FF",
+                strokeOpacity: 1,
+                strokeWeight: 6,
+                strokeStyle: "solid",
+                lineJoin: 'round',
+                lineCap: 'round',
+                zIndex: 50,
+                map: map
+            });
+        }
+
+        // 更新航点列表显示
+        function updateWaypointsList(path) {
+            var listHtml = "";
+            path.forEach(function(point, index) {
+                listHtml += `<div>${index + 1}. ${point.name}</div>`;
+            });
+            document.getElementById('waypoints-list').innerHTML = listHtml;
+        }
+
+        // 更新无人机状态
+        function updateDroneStatus(location) {
+            document.getElementById('drone-status').innerHTML =
+                `<div>
+                    <span class="status-icon drone-icon"></span>
+                    无人机 #DRN-001 当前位置: ${location}
+                    <button id="jumpToMenu" class="jump-btn"onclick="window.location.href='./manager'">返回</button>
+                </div>
+                `;
+        }
+    </script>
+
+
+</body>
+</html>

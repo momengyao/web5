@@ -1,0 +1,110 @@
+from flask import Flask, render_template, request, redirect, url_for, session
+import mysql.connector
+from mysql.connector import Error
+
+app = Flask(__name__)
+app.secret_key = 'your_secret_key_here'  # 用于会话加密
+
+# 数据库配置
+db_config = {
+    'host': 'localhost',
+    'user': 'root',
+    'password': '1234567890',
+    'port':3306,
+    'database': 'delivery_system'
+}
+
+
+def get_db_connection():
+    try:
+        connection = mysql.connector.connect(**db_config)
+        return connection
+    except Error as e:
+        print(f"Error connecting to MySQL: {e}")
+        return None
+
+
+@app.route('/')
+def home():
+    return redirect(url_for('login'))
+
+
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    if request.method == 'POST':
+        login_id = request.form['loginId']
+        password = request.form['password']
+        user_type = request.form['userType']
+
+        connection = get_db_connection()
+        if connection:
+            cursor = connection.cursor(dictionary=True)
+            query = "SELECT * FROM users WHERE login_id = %s AND password = %s AND user_type = %s"
+            cursor.execute(query, (login_id, password, user_type))
+            user = cursor.fetchone()
+            cursor.close()
+            connection.close()
+
+            if user:
+                session['user_id'] = user['id']
+                session['user_type'] = user['user_type']
+                session['login_id'] = user['login_id']
+
+                # 根据用户类型重定向到不同页面
+                if user_type == 'manager':
+                    return redirect(url_for('manager_dashboard'))
+                elif user_type == 'merchant':
+                    return redirect(url_for('merchant_dashboard'))
+                elif user_type == 'customer':
+                    return redirect(url_for('customer_dashboard'))
+            else:
+                return render_template('login.html', error="用户名或密码错误")
+
+    return render_template('login.html')
+
+
+@app.route('/manager')
+def manager_dashboard():
+    if 'user_id' not in session or session['user_type'] != 'manager':
+        return redirect(url_for('login'))
+
+    # 这里可以添加管理者特有的数据查询
+    return render_template('manager.html',
+                           username=session['login_id'])
+
+
+@app.route('/merchant')
+def merchant_dashboard():
+    if 'user_id' not in session or session['user_type'] != 'merchant':
+        return redirect(url_for('login'))
+
+    # 这里可以添加商户特有的数据查询
+    return render_template('merchant.html',
+                           username=session['login_id'])
+
+
+@app.route('/customer')
+def customer_dashboard():
+    if 'user_id' not in session or session['user_type'] != 'customer':
+        return redirect(url_for('login'))
+
+    # 这里可以添加顾客特有的数据查询
+    return render_template('customer.html',
+                           username=session['login_id'])
+
+
+@app.route('/logout')
+def logout():
+    session.clear()
+    return redirect(url_for('login'))
+
+@app.route('/map')
+def map():
+    return render_template('map.html')
+
+@app.route('/map2')
+def map2():
+    return render_template('map2.html')
+
+if __name__ == '__main__':
+    app.run(debug=True)

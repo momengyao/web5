@@ -1,0 +1,898 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>无人机配送系统 - 收件方中心</title>
+    <style>
+        .map-container {
+            height: 100%;
+            width: 100%;
+            border-radius: 8px;
+            overflow: hidden;
+            position: relative;
+            background-color: #f5f5f5;
+            min-height: 300px;
+        }
+        :root {
+            --primary-color: #2196F3;
+            --secondary-color: #f8f9fa;
+            --text-color: #333;
+            --light-text: #777;
+            --border-color: #ddd;
+        }
+        body {
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 0;
+            color: var(--text-color);
+        }
+        .navbar {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .logo {
+            font-size: 20px;
+            font-weight: bold;
+        }
+        .user-info {
+            display: flex;
+            align-items: center;
+        }
+        .user-info img {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            margin-right: 10px;
+        }
+        .sidebar {
+            width: 250px;
+            background-color: var(--secondary-color);
+            height: calc(100vh - 60px);
+            position: fixed;
+            padding: 20px 0;
+            border-right: 1px solid var(--border-color);
+        }
+        .sidebar-menu {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        .sidebar-menu li {
+            padding: 12px 20px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        .sidebar-menu li:hover {
+            background-color: #e9ecef;
+        }
+        .sidebar-menu li.active {
+            background-color: #e9ecef;
+            border-left: 4px solid var(--primary-color);
+        }
+        .sidebar-menu li i {
+            margin-right: 10px;
+            width: 20px;
+            text-align: center;
+        }
+        .main-content {
+            margin-left: 250px;
+            padding: 20px;
+        }
+        .card {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        .card-header {
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 10px;
+            margin-bottom: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .card-title {
+            font-size: 18px;
+            font-weight: bold;
+            margin: 0;
+        }
+        .order-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        .order-item {
+            padding: 15px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: background-color 0.3s;
+            cursor: pointer;
+        }
+        .order-item:hover {
+            background-color: #f8f9fa;
+        }
+        .order-item:last-child {
+            border-bottom: none;
+        }
+        .order-info {
+            flex: 1;
+        }
+        .order-id {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        .order-status {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        .status-pending {
+            background-color: #fff3cd;
+            color: #856404;
+        }
+        .status-confirmed {
+            background-color: #cce5ff;
+            color: #004085;
+        }
+        .status-shipping {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        .status-completed {
+            background-color: #e2e3e5;
+            color: #383d41;
+        }
+        .order-actions a {
+            color: var(--primary-color);
+            text-decoration: none;
+            margin-left: 10px;
+        }
+        .order-actions a:hover {
+            text-decoration: underline;
+        }
+        .status-timeline {
+            margin-top: 20px;
+        }
+        .timeline-item {
+            display: flex;
+            margin-bottom: 15px;
+        }
+        .timeline-dot {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background-color: var(--primary-color);
+            margin-right: 15px;
+            flex-shrink: 0;
+        }
+        .timeline-content {
+            flex: 1;
+        }
+        .timeline-time {
+            font-size: 12px;
+            color: var(--light-text);
+            margin-bottom: 5px;
+        }
+        .timeline-text {
+            font-size: 14px;
+        }
+        .active .timeline-dot {
+            background-color: var(--primary-color);
+            border: 3px solid #a5d6a7;
+        }
+        .inactive .timeline-dot {
+            background-color: #ccc;
+        }
+        /* 个人信息样式 */
+        .profile-info {
+            margin-top: 20px;
+        }
+        .profile-info-item {
+            margin-bottom: 15px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid var(--border-color);
+        }
+        .profile-info-item:last-child {
+            border-bottom: none;
+        }
+        .info-label {
+            font-weight: bold;
+            margin-bottom: 5px;
+            color: var(--light-text);
+            font-size: 14px;
+        }
+        .info-value {
+            font-size: 16px;
+        }
+        .edit-btn {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            margin-top: 20px;
+        }
+        .edit-btn:hover {
+            background-color: #3e8e41;
+        }
+        .address-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        .address-item {
+            padding: 15px;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            margin-bottom: 10px;
+            position: relative;
+        }
+        .address-item.default {
+            border-left: 4px solid var(--primary-color);
+        }
+        .address-actions {
+            position: absolute;
+            right: 15px;
+            top: 15px;
+        }
+        .address-actions a {
+            color: var(--primary-color);
+            text-decoration: none;
+            margin-left: 10px;
+            font-size: 14px;
+        }
+        .add-address-btn {
+            display: inline-block;
+            color: var(--primary-color);
+            text-decoration: none;
+            margin-top: 10px;
+        }
+        .add-address-btn i {
+            margin-right: 5px;
+        }
+        .back-button {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        #map-container {
+            width: 100%;
+            height: 100%;
+        }
+    </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+</head>
+<script type="text/javascript">
+    window._AMapSecurityConfig = {
+        securityJsCode: "b927aa87e7e823942320065878154892"
+    };
+</script>
+<script src="https://webapi.amap.com/loader.js"></script>
+<body>
+    <div class="navbar">
+        <div class="logo">无人机配送系统</div>
+        <div class="user-info">
+            <img src="user-avatar.jpg" alt="用户头像">
+            <span>张三</span>
+        </div>
+    </div>
+
+    <div class="sidebar">
+        <ul class="sidebar-menu">
+            <li class="active" onclick="showSection('active-orders')">
+                <i class="fas fa-truck"></i> 进行中的订单
+            </li>
+            <li onclick="showSection('completed-orders')">
+                <i class="fas fa-check-circle"></i> 已完成的订单
+            </li>
+            <li onclick="showSection('profile')">
+                <i class="fas fa-user"></i> 个人资料
+            </li>
+            <li onclick="showSection('settings')">
+                <i class="fas fa-cog"></i> 设置
+            </li>
+            <li onclick="location.href='./login'">
+                <i class="fas fa-sign-out-alt"></i> 退出登录
+            </li>
+        </ul>
+    </div>
+
+    <div class="main-content">
+        <!-- 进行中的订单 -->
+        <div id="active-orders" class="content-section">
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">进行中的订单</h2>
+                </div>
+                <ul class="order-list">
+                    <li class="order-item" data-order-id="order-12345">
+                        <div class="order-info">
+                            <div class="order-id">订单号: #DR-12345</div>
+                            <div>配送物品: 紧急医疗用品</div>
+                            <div>商家: 市中心药店</div>
+                            <div>预计到达: 今天 15:30</div>
+                        </div>
+                        <div class="order-status status-shipping">运输中</div>
+                    </li>
+                    <li class="order-item" data-order-id="order-12346">
+                        <div class="order-info">
+                            <div class="order-id">订单号: #DR-12346</div>
+                            <div>配送物品: 电子产品</div>
+                            <div>商家: 科技商城</div>
+                            <div>预计到达: 明天 10:00</div>
+                        </div>
+                        <div class="order-status status-confirmed">商家已确认</div>
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+
+        <!-- 已完成的订单 -->
+<div id="completed-orders" class="content-section" style="display:none;">
+    <div class="card">
+        <div class="card-header">
+            <h2 class="card-title">已完成的订单</h2>
+        </div>
+        <ul class="order-list">
+            <li class="order-item" data-order-id="order-12344">
+                <div class="order-info">
+                    <div class="order-id">订单号: #DR-12344</div>
+                    <div>配送物品: 食品</div>
+                    <div>商家: 美食餐厅</div>
+                    <div>完成时间: 2023-05-10 12:30</div>
+                </div>
+                <div class="order-status status-completed">已完成</div>
+            </li>
+            <li class="order-item" data-order-id="order-12343">
+                <div class="order-info">
+                    <div class="order-id">订单号: #DR-12343</div>
+                    <div>配送物品: 书籍</div>
+                    <div>商家: 在线书店</div>
+                    <div>完成时间: 2023-05-08 16:45</div>
+                </div>
+                <div class="order-status status-completed">已完成</div>
+            </li>
+        </ul>
+    </div>
+</div>
+
+        <!-- 个人信息 -->
+        <div id="profile" class="content-section" style="display:none;">
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">个人信息</h2>
+                </div>
+
+                <div class="profile-info">
+                    <div class="profile-info-item">
+                        <div class="info-label">姓名</div>
+                        <div class="info-value">张三</div>
+                    </div>
+
+                    <div class="profile-info-item">
+                        <div class="info-label">手机号码</div>
+                        <div class="info-value">13800138000</div>
+                    </div>
+
+                    <div class="profile-info-item">
+                        <div class="info-label">电子邮箱</div>
+                        <div class="info-value">zhangsan@example.com</div>
+                    </div>
+
+                    <div class="profile-info-item">
+                        <div class="info-label">注册时间</div>
+                        <div class="info-value">2022-03-15</div>
+                    </div>
+
+                    <button class="edit-btn">编辑个人信息</button>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">收货地址</h2>
+                </div>
+
+                <ul class="address-list">
+                    <li class="address-item default">
+                        <div class="address-actions">
+                            <a href="#"><i class="fas fa-edit"></i> 编辑</a>
+                            <a href="#"><i class="fas fa-trash"></i> 删除</a>
+                        </div>
+                        <div class="info-label">默认地址</div>
+                        <div class="info-value">张三</div>
+                        <div class="info-value">13800138000</div>
+                        <div class="info-value">北京市朝阳区科技园A座15楼1502室</div>
+                    </li>
+
+                    <li class="address-item">
+                        <div class="address-actions">
+                            <a href="#"><i class="fas fa-edit"></i> 编辑</a>
+                            <a href="#"><i class="fas fa-trash"></i> 删除</a>
+                        </div>
+                        <div class="info-value">张三</div>
+                        <div class="info-value">13800138000</div>
+                        <div class="info-value">北京市海淀区学院路38号</div>
+                    </li>
+                </ul>
+
+                <a href="#" class="add-address-btn"><i class="fas fa-plus"></i> 添加新地址</a>
+            </div>
+        </div>
+
+        <!-- 订单详情 (默认隐藏) -->
+        <div id="order-detail" class="content-section" style="display:none;">
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">订单详情 <span id="order-id-display">#DR-12345</span></h2>
+                    <button onclick="hideOrderDetail()" class="back-button">返回订单列表</button>
+                </div>
+
+                <div class="order-info">
+                    <p><strong>配送物品:</strong> <span id="order-item">紧急医疗用品</span></p>
+                    <p><strong>商家:</strong> <span id="order-merchant">市中心药店</span></p>
+                    <p><strong>配送地址:</strong> <span id="order-address">北京市朝阳区科技园A座15楼1502室</span></p>
+                    <p><strong>订单金额:</strong> <span id="order-amount">¥58.00</span></p>
+                    <p><strong>下单时间:</strong> <span id="order-time">2023-05-15 14:20</span></p>
+                    <p><strong>预计到达:</strong> <span id="order-eta">今天 15:30</span></p>
+                    <p><strong>当前状态:</strong> <span class="order-status status-shipping" id="order-status">运输中</span></p>
+                </div>
+
+                <div class="map-container" id="order-map">
+                    <div id="map-container"></div>
+                </div>
+
+                <div class="status-timeline">
+                    <h3>订单状态时间线</h3>
+                    <div class="timeline-item active">
+                        <div class="timeline-dot"></div>
+                        <div class="timeline-content">
+                            <div class="timeline-time">2023-05-15 14:25</div>
+                            <div class="timeline-text">无人机已接单，正在前往商家</div>
+                        </div>
+                    </div>
+                    <div class="timeline-item active">
+                        <div class="timeline-dot"></div>
+                        <div class="timeline-content">
+                            <div class="timeline-time">2023-05-15 14:40</div>
+                            <div class="timeline-text">已到达商家，等待取货</div>
+                        </div>
+                    </div>
+                    <div class="timeline-item">
+                        <div class="timeline-dot inactive"></div>
+                        <div class="timeline-content">
+                            <div class="timeline-time">预计 2023-05-15 15:30</div>
+                            <div class="timeline-text">将到达目的地</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 设置 -->
+        <div id="settings" class="content-section" style="display:none;">
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">账户设置</h2>
+                </div>
+
+                <div class="profile-info">
+                    <div class="profile-info-item">
+                        <div class="info-label">通知设置</div>
+                        <div class="info-value">接收订单状态通知</div>
+                    </div>
+
+                    <div class="profile-info-item">
+                        <div class="info-label">隐私设置</div>
+                        <div class="info-value">仅显示必要信息给配送员</div>
+                    </div>
+
+                    <div class="profile-info-item">
+                        <div class="info-label">安全设置</div>
+                        <div class="info-value">已启用双重认证</div>
+                    </div>
+
+                    <button class="edit-btn">修改设置</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 全局变量声明
+        let map = null;
+        let droneMarker = null;
+        let dronePath = null;
+        let moveInterval = null;
+
+        function showSection(sectionId) {
+            // 隐藏所有内容区域
+            document.querySelectorAll('.content-section').forEach(section => {
+                section.style.display = 'none';
+            });
+
+            // 显示选中的内容区域
+            document.getElementById(sectionId).style.display = 'block';
+
+            // 更新菜单项活动状态
+            document.querySelectorAll('.sidebar-menu li').forEach(item => {
+                item.classList.remove('active');
+            });
+
+            // 设置当前菜单项为活动状态
+            if (sectionId === 'active-orders') {
+                document.querySelector('.sidebar-menu li:nth-child(1)').classList.add('active');
+            } else if (sectionId === 'completed-orders') {
+                document.querySelector('.sidebar-menu li:nth-child(2)').classList.add('active');
+            } else if (sectionId === 'profile') {
+                document.querySelector('.sidebar-menu li:nth-child(3)').classList.add('active');
+            } else if (sectionId === 'settings') {
+                document.querySelector('.sidebar-menu li:nth-child(4)').classList.add('active');
+            }
+        }
+
+        function viewOrderDetail(orderId) {
+    if (moveInterval) {
+        clearInterval(moveInterval);
+        moveInterval = null;
+    }
+
+    // 2. 销毁旧地图实例
+    if (map) {
+        map.destroy();
+        map = null;
+    }
+
+    // 3. 隐藏所有内容区域
+    document.querySelectorAll('.content-section').forEach(section => {
+        section.style.display = 'none';
+    });
+
+    // 4. 显示订单详情
+    document.getElementById('order-detail').style.display = 'block';
+
+    // 5. 更新订单信息
+    updateOrderInfo(orderId);
+
+    // 6. 仅对进行中的订单初始化地图
+    const completedOrders = ['order-12344', 'order-12343'];
+    if (!completedOrders.includes(orderId)) {
+        setTimeout(() => initMap(orderId), 50);
+    } else {
+        // 隐藏地图和时间线容器
+        document.getElementById('order-map').style.display = 'none';
+        document.querySelector('.status-timeline').style.display = 'none';
+    }
+}
+        AMapLoader.load({
+        key: "b927aa87e7e823942320065878154892",
+        version: "2.0",
+        plugins: ['AMap.Marker', 'AMap.Polyline', 'AMap.ToolBar', 'AMap.Scale']
+    }).then((AMap) => {
+        map = new AMap.Map(container, {
+            zoom: 15,
+            viewMode: "2D",
+            center: [116.397428, 39.90923] // 默认中心
+        });
+
+        // 添加控件
+        map.addControl(new AMap.ToolBar());
+        map.addControl(new AMap.Scale());
+
+        setInitialPosition(orderId);
+
+        if (orderId === 'order-12345') {
+            simulateDroneMovement();
+        }
+    }).catch(e => {
+        console.error("地图加载失败:", e);
+        showMapError();
+    });
+        function hideOrderDetail() {
+            // 1. 清除动画
+            if (moveInterval) {
+                clearInterval(moveInterval);
+                moveInterval = null;
+            }
+
+            // 2. 销毁地图实例
+            if (map) {
+                map.destroy();
+                map = null;
+                droneMarker = null;
+                dronePath = null;
+            }
+
+            // 3. 隐藏订单详情
+            document.getElementById('order-detail').style.display = 'none';
+
+            // 4. 显示之前的内容区域
+            const activeMenuItems = document.querySelectorAll('.sidebar-menu li.active');
+            if (activeMenuItems.length > 0) {
+                const activeItem = activeMenuItems[0];
+                if (activeItem.textContent.includes('进行中的订单')) {
+                    document.getElementById('active-orders').style.display = 'block';
+                } else if (activeItem.textContent.includes('已完成的订单')) {
+                    document.getElementById('completed-orders').style.display = 'block';
+                }
+            } else {
+                // 默认显示进行中的订单
+                document.getElementById('active-orders').style.display = 'block';
+                document.querySelector('.sidebar-menu li:nth-child(1)').classList.add('active');
+            }
+        }
+
+        function updateOrderInfo(orderId) {
+
+            const orders = {
+                'order-12345': {
+                    id: '#DR-12345',
+                    item: '紧急医疗用品',
+                    merchant: '市中心药店',
+                    address: '北京市朝阳区科技园A座15楼1502室',
+                    amount: '¥58.00',
+                    time: '2023-05-15 14:20',
+                    eta: '今天 15:30',
+                    status: '运输中',
+                    statusClass: 'status-shipping'
+                },
+                'order-12346': {
+                    id: '#DR-12346',
+                    item: '电子产品',
+                    merchant: '科技商城',
+                    address: '北京市海淀区学院路38号',
+                    amount: '¥1299.00',
+                    time: '2023-05-15 15:10',
+                    eta: '明天 10:00',
+                    status: '商家已确认',
+                    statusClass: 'status-confirmed'
+                },
+                'order-12344': {
+                    id: '#DR-12344',
+                    item: '食品',
+                    merchant: '美食餐厅',
+                    address: '北京市朝阳区美食街88号',
+                    amount: '¥128.00',
+                    time: '2023-05-10 12:30',
+                    eta: '已送达',
+                    status: '已完成',
+                    statusClass: 'status-completed'
+                },
+                'order-12343': {
+                    id: '#DR-12343',
+                    item: '书籍',
+                    merchant: '在线书店',
+                    address: '北京市海淀区学院路38号',
+                    amount: '¥89.00',
+                    time: '2023-05-08 16:45',
+                    eta: '已送达',
+                    status: '已完成',
+                    statusClass: 'status-completed'
+                }
+            };
+
+            const order = orders[orderId];
+            if (order) {
+                document.getElementById('order-id-display').textContent = order.id;
+                document.getElementById('order-item').textContent = order.item;
+                document.getElementById('order-merchant').textContent = order.merchant;
+                document.getElementById('order-address').textContent = order.address;
+                document.getElementById('order-amount').textContent = order.amount;
+                document.getElementById('order-time').textContent = order.time;
+                document.getElementById('order-eta').textContent = order.eta;
+                document.getElementById('order-status').textContent = order.status;
+                document.getElementById('order-status').className = `order-status ${order.statusClass}`;
+            }
+        }
+       // 初始化地图
+function initMap(orderId) {
+    const container = document.getElementById('map-container');
+
+    // 设置容器尺寸
+    container.style.height = '400px';
+    container.style.width = '100%';
+
+    AMapLoader.load({
+        key: "b927aa87e7e823942320065878154892",
+        version: "2.0",
+        plugins: ['AMap.Marker', 'AMap.Polyline']
+    }).then((AMap) => {
+        map = new AMap.Map(container, {
+            zoom: 15,
+            viewMode: "2D",
+            center: [116.397428, 39.90923]
+        });
+
+        // 地图加载完成后设置初始位置
+        map.on('complete', function() {
+            setInitialPosition(orderId);
+        });
+    }).catch(showMapError);
+}
+
+// 设置初始位置
+function setInitialPosition(orderId) {
+    if (!map) return;
+
+    // 清除旧覆盖物
+    map.remove([droneMarker, dronePath].filter(Boolean));
+
+    const locations = {
+        'order-12345': { // 科技商城
+            center: [116.481181, 39.989792],
+            icon: "https://webapi.amap.com/theme/v1.3/markers/n/mark_b.png",
+            title: "科技商城"
+        },
+        'order-12346': { // 市中心药店
+            center: [116.382122, 39.901176],
+            icon: "https://webapi.amap.com/theme/v1.3/markers/n/mark_r.png",
+            title: "市中心药店"
+        },
+        'default': { // 默认位置
+            center: [116.397428, 39.90923],
+            icon: "https://webapi.amap.com/theme/v1.3/markers/n/mark_g.png",
+            title: "默认位置"
+        }
+    };
+
+    const location = locations[orderId] || locations['default'];
+    map.setCenter(location.center);
+    if (orderId === 'order-12345') {
+    // 定义起点和终点
+    const startPoint = [116.481181, 39.989792];  // 起点
+    const endPoint = [116.397428, 39.90923];     // 终点
+
+    // 无人机初始位置（在起点附近）
+    const dronePosition = [116.4815, 39.9900];
+
+    // 创建起点和终点蓝色标记
+    [startPoint, endPoint].forEach((point, index) => {
+        new AMap.Marker({
+            position: point,
+            icon: "https://webapi.amap.com/theme/v1.3/markers/n/mark_b.png",
+            offset: new AMap.Pixel(-13, -30),
+            title: index === 0 ? "起点" : "终点",
+            map: map
+        });
+    });
+
+
+    const paths = [
+        [startPoint, dronePosition],  // 起点到无人机
+        [startPoint, endPoint]        // 起点到终点
+    ];
+
+    // 创建平滑路径函数
+    function createSmoothPath(points) {
+        const path = [];
+        for(let i = 0; i < points.length - 1; i++) {
+            const p1 = points[i];
+            const p2 = points[i+1];
+            for(let t = 0; t <= 1; t += 0.2) {
+                path.push([
+                    p1[0] + (p2[0] - p1[0]) * t,
+                    p1[1] + (p2[1] - p1[1]) * t
+                ]);
+            }
+        }
+        path.push(points[points.length - 1]);
+        return path;
+    }
+
+    // 创建两条蓝色路径
+    paths.forEach((pathPoints, index) => {
+        const path = new AMap.Polyline({
+            path: createSmoothPath(pathPoints),
+            strokeColor: "#1890FF",
+            strokeWeight: index === 0 ? 6 : 3,  // 起点到无人机用粗线，另一条用细线
+            strokeOpacity: 0.8,
+            strokeStyle: "solid",
+            map: map
+        });
+
+
+        if(index === 0) dronePath = path;
+    });
+
+    // 创建红色无人机标记
+    droneMarker = new AMap.Marker({
+        position: dronePosition,
+        icon: "https://webapi.amap.com/theme/v1.3/markers/n/mark_r.png",
+        offset: new AMap.Pixel(-13, -30),
+        title: "无人机",
+        map: map,
+        zIndex: 100
+    });
+
+    // 调整视野显示所有元素
+    map.setFitView([
+        droneMarker,
+        dronePath,
+        new AMap.Marker({ position: startPoint }),
+        new AMap.Marker({ position: endPoint })
+    ], {
+        padding: [50, 50],
+        animate: true
+    });
+
+    // 无人机移动动画（沿起点到终点的路径）
+    simulateDroneMovement();
+}
+
+}
+
+
+// 模拟无人机移动
+function simulateDroneMovement() {
+    if (!map || !droneMarker || !dronePath) return;
+
+    const path = dronePath.getPath();
+    let currentPosIndex = 0;
+
+    moveInterval = setInterval(() => {
+        if (currentPosIndex >= path.length - 1) {
+            clearInterval(moveInterval);
+            return;
+        }
+
+        animateMove(droneMarker, path[currentPosIndex], path[currentPosIndex + 1]);
+        currentPosIndex++;
+    }, 3000);
+}
+
+// 动画移动函数
+function animateMove(marker, start, end) {
+    const steps = 50;
+    const lngStep = (end[0] - start[0]) / steps;
+    const latStep = (end[1] - start[1]) / steps;
+
+    let step = 0;
+    const animateInterval = setInterval(() => {
+        if (step >= steps) {
+            clearInterval(animateInterval);
+            return;
+        }
+
+        marker.setPosition([
+            start[0] + lngStep * step,
+            start[1] + latStep * step
+        ]);
+
+        step++;
+    }, 50);
+}
+
+        // 页面加载时显示进行中的订单
+        document.addEventListener('DOMContentLoaded', function() {
+            showSection('active-orders');
+
+            // 为订单项添加点击事件
+            document.querySelectorAll('.order-item').forEach(item => {
+                item.addEventListener('click', function() {
+                    const orderId = this.getAttribute('data-order-id');
+                    viewOrderDetail(orderId);
+                });
+            });
+        });
+    </script>
+</body>
+</html>
